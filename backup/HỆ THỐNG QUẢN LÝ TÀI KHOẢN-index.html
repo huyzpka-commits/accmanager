@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaultManager - Hệ Thống Quản Lý Tài Khoản Đa Tầng</title>
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-light: #e0e7ff;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --sidebar-width: 280px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #131b2e;
+            --bg-tertiary: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --accent-light: rgba(99, 102, 241, 0.15);
+            --border: #2d3748;
+            --danger: #f87171;
+            --danger-light: rgba(239, 68, 68, 0.15);
+            --success: #34d399;
+            --success-light: rgba(16, 185, 129, 0.15);
+            --warning: #fbbf24;
+            --warning-light: rgba(245, 158, 11, 0.15);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.1s ease;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            width: 100vw;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 50;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-menu {
+            padding: 16px 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .menu-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin: 16px 8px 8px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-decoration: none;
+        }
+
+        .category-item:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .category-item.active {
+            background-color: var(--accent-light);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .category-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .category-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .category-item.active .badge {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Header */
+        .top-header {
+            height: 70px;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .search-box {
+            position: relative;
+            width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 18px;
+            height: 18px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            outline: none;
+            user-select: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-icon-only {
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-icon-only:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Content Body */
+        .content-body {
+            padding: 24px;
+            flex: 1;
+        }
+
+        /* Stats Bar */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-info h4 {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .stat-info p {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Category Header Banner */
+        .category-banner {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .banner-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .banner-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .banner-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        /* Website Group Cards */
+        .website-section {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .website-header {
+            padding: 16px 24px;
+            background-color: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .website-title-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .website-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--accent);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .website-meta h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .website-url {
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .website-note {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .website-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Sub-grouping & Pagination bar inside website */
+        .subgroup-bar {
+            padding: 12px 24px;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .subgroup-tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .subgroup-tab {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+
+        .subgroup-tab.active {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        /* Accounts Table */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .accounts-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .accounts-table th {
+            padding: 12px 24px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .accounts-table td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .accounts-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .accounts-table tr:hover td {
+            background-color: var(--bg-tertiary);
+        }
+
+        .account-user {
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subgroup-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: var(--accent-light);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .password-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: monospace;
+            font-size: 0.95rem;
+        }
+
+        .password-masked {
+            letter-spacing: 2px;
+        }
+
+        .date-cell {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .note-cell {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            max-width: 200px;
+        }
+
+        .row-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Pagination bar */
+        .pagination-bar {
+            padding: 12px 24px;
+            background-color: var(--bg-tertiary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .pagination-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .page-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background-color: var(--bg-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .page-btn.active {
+            background-color: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 550px;
+            box-shadow: var(--shadow-lg);
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.open .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background-color: var(--bg-tertiary);
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 2000;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            background-color: var(--text-primary);
+            color: var(--bg-primary);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.875rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            max-width: 400px;
+            margin: 0 auto 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <span class="logo-text">VaultManager</span>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-label">Điều hướng nhanh</div>
+            <a href="#" class="category-item active" onclick="selectCategory('all', this)">
+                <div class="category-info">
+                    <span class="category-icon">📁</span>
+                    <span>Tất cả tài khoản</span>
+                </div>
+                <span class="badge" id="badge-all">0</span>
+            </a>
+
+            <div class="menu-label">Đề mục lớn (Danh mục web)</div>
+            <div id="category-list">
+                <!-- Categories injected here -->
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="openCategoryModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Thêm Đề Mục Lớn
+            </button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-secondary" style="flex: 1; font-size: 0.75rem; justify-content: center;" onclick="exportData()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Sao lưu
+                </button>
+                <button class="btn btn-secondary" style="flex: 1; font-size: 0.75rem; justify-content: center;" onclick="document.getElementById('import-file').click()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Phục hồi
+                </button>
+                <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
+            </div>
+            <button class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.8rem;" onclick="loadSampleData()">
+                ⚡ Tạo dữ liệu mẫu để trải nghiệm
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" class="search-input" id="search-input" placeholder="Tìm kiếm theo web, tài khoản, ghi chú..." oninput="filterData()">
+            </div>
+
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="toggleTheme()" id="theme-btn" title="Chuyển chế độ Giao diện">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+                <button class="btn btn-secondary" onclick="openGenModal()" title="Trình tạo mật khẩu tự động">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    Tạo mật khẩu mạnh
+                </button>
+                <button class="btn btn-secondary" onclick="openWebsiteModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    Thêm Trang Web
+                </button>
+                <button class="btn btn-primary" onclick="openAccountModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Thêm Tài Khoản
+                </button>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h4>Tổng số Đề mục lớn</h4>
+                        <p id="stat-categories">0</p>
+                    </div>
+                    <div class="stat-icon" style="background-color: var(--accent-light); color: var(--accent);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h4>Trang Web / Dịch vụ</h4>
+                        <p id="stat-websites">0</p>
+                    </div>
+                    <div class="stat-icon" style="background-color: var(--success-light); color: var(--success);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h4>Tổng Tài Khoản Đã Lưu</h4>
+                        <p id="stat-accounts">0</p>
+                    </div>
+                    <div class="stat-icon" style="background-color: var(--warning-light); color: var(--warning);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner current category -->
+            <div class="category-banner" id="current-category-banner">
+                <div class="banner-title">
+                    <span style="font-size: 2rem;" id="banner-icon">📁</span>
+                    <div>
+                        <h2 id="banner-title">Tất cả tài khoản</h2>
+                        <div class="banner-desc" id="banner-desc">Hiển thị toàn bộ các trang web và tài khoản được chia theo nhóm rõ ràng</div>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge" style="font-size: 0.9rem; padding: 6px 14px;" id="banner-count">0 tài khoản</span>
+                </div>
+            </div>
+
+            <!-- Main Render Area -->
+            <div id="main-content-render">
+                <!-- Websites and Accounts injected here -->
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modal: Add/Edit Account -->
+<div class="modal-overlay" id="account-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="account-modal-title">Thêm Tài Khoản Mới</h3>
+            <button class="btn-icon-only" onclick="closeModal('account-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="acc-id">
+            <div class="form-group">
+                <label>Thuộc Trang Web / Dịch vụ (*)</label>
+                <select class="form-control" id="acc-website" required></select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tên đăng nhập / Email (*)</label>
+                    <input type="text" class="form-control" id="acc-user" placeholder="VD: user@domain.com">
+                </div>
+                <div class="form-group">
+                    <label>Mục nhỏ / Nhóm phụ (Tiểu mục)</label>
+                    <input type="text" class="form-control" id="acc-subgroup" placeholder="VD: Tài khoản chính, Clone, VIP...">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu (*)</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="password" class="form-control" id="acc-pass" placeholder="Nhập mật khẩu...">
+                    <button type="button" class="btn btn-secondary" onclick="toggleInputPass('acc-pass')">👁️</button>
+                    <button type="button" class="btn btn-secondary" onclick="generateAutoPassForInput()" title="Tạo tự động">⚡</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Ghi chú (Gợi ý câu hỏi bảo mật, vai trò, v.v.)</label>
+                <textarea class="form-control" id="acc-note" rows="2" placeholder="Ghi chú chi tiết cho tài khoản này..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('account-modal')">Hủy</button>
+            <button class="btn btn-primary" onclick="saveAccount()">Lưu Tài Khoản</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add/Edit Website -->
+<div class="modal-overlay" id="website-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="website-modal-title">Thêm Trang Web / Dịch Vụ</h3>
+            <button class="btn-icon-only" onclick="closeModal('website-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="web-id">
+            <div class="form-group">
+                <label>Thuộc Đề Mục Lớn (*)</label>
+                <select class="form-control" id="web-category"></select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tên Trang Web / Dịch vụ (*)</label>
+                    <input type="text" class="form-control" id="web-name" placeholder="VD: Google Workspace, Facebook...">
+                </div>
+                <div class="form-group">
+                    <label>Biểu tượng (Emoji)</label>
+                    <input type="text" class="form-control" id="web-icon" placeholder="VD: 🌐, 📘, 🏦" value="🌐">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Đường dẫn web (URL)</label>
+                <input type="text" class="form-control" id="web-url" placeholder="VD: https://facebook.com">
+            </div>
+            <div class="form-group">
+                <label>Mô tả / Ghi chú trang web</label>
+                <input type="text" class="form-control" id="web-note" placeholder="VD: Cổng quản trị doanh nghiệp">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('website-modal')">Hủy</button>
+            <button class="btn btn-primary" onclick="saveWebsite()">Lưu Trang Web</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Category -->
+<div class="modal-overlay" id="category-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Thêm Đề Mục Lớn (Danh Mục)</h3>
+            <button class="btn-icon-only" onclick="closeModal('category-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tên Đề Mục Lớn (*)</label>
+                    <input type="text" class="form-control" id="cat-name" placeholder="VD: Mạng Xã Hội, Ngân Hàng...">
+                </div>
+                <div class="form-group">
+                    <label>Biểu tượng (Emoji)</label>
+                    <input type="text" class="form-control" id="cat-icon" placeholder="VD: 💬, 💳, 🎮" value="📁">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Mô tả đề mục</label>
+                <input type="text" class="form-control" id="cat-desc" placeholder="VD: Quản lý toàn bộ tài khoản MXH và Marketing">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('category-modal')">Hủy</button>
+            <button class="btn btn-primary" onclick="saveCategory()">Tạo Đề Mục</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Password Generator -->
+<div class="modal-overlay" id="gen-modal">
+    <div class="modal" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>Trình Tạo Mật Khẩu Mạnh</h3>
+            <button class="btn-icon-only" onclick="closeModal('gen-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Mật khẩu tạo ra:</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" class="form-control" id="gen-result" readonly style="font-family: monospace; font-size: 1.1rem; font-weight: bold;">
+                    <button class="btn btn-primary" onclick="copyGenPass()">Sao chép</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Độ dài mật khẩu: <span id="gen-length-val">16</span> ký tự</label>
+                <input type="range" id="gen-length" min="8" max="32" value="16" style="width: 100%;" oninput="document.getElementById('gen-length-val').innerText = this.value; generatePass();">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <label><input type="checkbox" id="gen-upper" checked onchange="generatePass()"> Chữ hoa (A-Z)</label>
+                <label><input type="checkbox" id="gen-lower" checked onchange="generatePass()"> Chữ thường (a-z)</label>
+                <label><input type="checkbox" id="gen-num" checked onchange="generatePass()"> Chữ số (0-9)</label>
+                <label><input type="checkbox" id="gen-sym" checked onchange="generatePass()"> Ký tự đặc biệt (!@#$)</label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="generatePass()">🔄 Tạo lại</button>
+            <button class="btn btn-primary" onclick="closeModal('gen-modal')">Xong</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+    // State management
+    let categories = [];
+    let websites = [];
+    let accounts = [];
+    let currentCategory = 'all';
+    let searchQuery = '';
+    
+    // Pagination & subgroup filtering state per website: { [webId]: { page: 1, subGroup: 'ALL' } }
+    let webViewState = {};
+    const ITEMS_PER_PAGE = 5; // Yêu cầu phân chia nhỏ khi số lượng nhiều (> 5)
+
+    // Notepad store: danh sách tài khoản ghi ra file .txt (lưu localStorage để tránh trùng lặp)
+    let notepadAccounts = [];
+    const NOTEPAD_KEY = 'vault_notepad_accounts';
+    const NOTEPAD_FILENAME = 'accounts_notepad.txt';
+
+    function loadNotepad() {
+        try {
+            const saved = localStorage.getItem(NOTEPAD_KEY);
+            notepadAccounts = saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            notepadAccounts = [];
+        }
+    }
+
+    function saveNotepadStore() {
+        localStorage.setItem(NOTEPAD_KEY, JSON.stringify(notepadAccounts));
+    }
+
+    // Kiểm tra trùng lặp theo id, nếu trùng thì cập nhật thay vì thêm mới
+    function upsertNotepadAccount(acc, webName) {
+        const idx = notepadAccounts.findIndex(a => a.id === acc.id);
+        const entry = {
+            id: acc.id,
+            web: webName,
+            user: acc.user,
+            pass: acc.pass,
+            subGroup: acc.subGroup || 'Chung',
+            note: acc.note || '',
+            createdAt: acc.createdAt,
+            updatedAt: acc.updatedAt
+        };
+        if (idx !== -1) {
+            notepadAccounts[idx] = entry;
+        } else {
+            notepadAccounts.push(entry);
+        }
+    }
+
+    function buildNotepadText() {
+        const lines = [];
+        lines.push('===== VAULTMANAGER - DANH SACH TAI KHOAN (NOTEPAD) =====');
+        lines.push('Tong so: ' + notepadAccounts.length + ' tai khoan');
+        lines.push('Cap nhat: ' + new Date().toLocaleString('vi-VN'));
+        lines.push('='.repeat(58));
+        lines.push('');
+        notepadAccounts.forEach((a, i) => {
+            lines.push('#' + (i + 1));
+            lines.push('  Website    : ' + (a.web || ''));
+            lines.push('  Tai khoan  : ' + (a.user || ''));
+            lines.push('  Mat khau   : ' + (a.pass || ''));
+            lines.push('  Nhom       : ' + (a.subGroup || ''));
+            lines.push('  Ghi chu    : ' + (a.note || ''));
+            lines.push('  Tao luc    : ' + (a.createdAt || 'Chua co'));
+            lines.push('  Sua luc    : ' + (a.updatedAt || 'Chua co'));
+            lines.push('-'.repeat(58));
+        });
+        return lines.join('\r\n');
+    }
+
+    function downloadNotepadFile() {
+        const text = buildNotepadText();
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = NOTEPAD_FILENAME;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Dong bo: cap nhat notepad tu mot account moi/sua, kiem tra trung lap, tai file .txt
+    function syncNotepadFromAccount(acc) {
+        const web = websites.find(w => w.id === acc.webId);
+        const webName = web ? web.name : 'Khong xac dinh';
+        upsertNotepadAccount(acc, webName);
+        saveNotepadStore();
+        downloadNotepadFile();
+    }
+
+    // Format datetime
+    function formatDate(isoString) {
+        if (!isoString) return 'Chưa có';
+        const date = new Date(isoString);
+        return date.toLocaleDateString('vi-VN', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    // Toast notification
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<span>⚡</span> <span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Theme toggle
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('vault_theme', 'light');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('vault_theme', 'dark');
+        }
+    }
+
+    // Initialize & LocalStorage
+    function init() {
+        const theme = localStorage.getItem('vault_theme');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+        loadNotepad();
+
+        const savedCats = localStorage.getItem('vault_categories');
+        const savedWebs = localStorage.getItem('vault_websites');
+        const savedAccs = localStorage.getItem('vault_accounts');
+
+        if (savedCats && savedWebs && savedAccs) {
+            categories = JSON.parse(savedCats);
+            websites = JSON.parse(savedWebs);
+            accounts = JSON.parse(savedAccs);
+        } else {
+            loadSampleData(true);
+        }
+        renderApp();
+    }
+
+    function saveData() {
+        localStorage.setItem('vault_categories', JSON.stringify(categories));
+        localStorage.setItem('vault_websites', JSON.stringify(websites));
+        localStorage.setItem('vault_accounts', JSON.stringify(accounts));
+        renderApp();
+    }
+
+    // Sample Data generator
+    function loadSampleData(silent = false) {
+        categories = [
+            { id: 'cat-1', name: 'Mạng Xã Hội & Giao Tiếp', icon: '💬', desc: 'Các tài khoản mạng xã hội, tin nhắn liên lạc chính' },
+            { id: 'cat-2', name: 'Công Việc & Doanh Nghiệp', icon: '💼', desc: 'Tài khoản công ty, quản trị dự án, email doanh nghiệp' },
+            { id: 'cat-3', name: 'Tài Chính & Ngân Hàng', icon: '💳', desc: 'Ngân hàng số, ví điện tử, cổng thanh toán bảo mật' },
+            { id: 'cat-4', name: 'Hạ Tầng & Công Cụ Code', icon: '🛠️', desc: 'Máy chủ Cloud, GitHub, Domain, DNS, OpenAI' }
+        ];
+
+        websites = [
+            { id: 'web-1', categoryId: 'cat-1', name: 'Facebook', icon: '📘', url: 'https://facebook.com', note: 'Quản lý Fanpage và cá nhân' },
+            { id: 'web-2', categoryId: 'cat-1', name: 'Google / Gmail', icon: '🌐', url: 'https://google.com', note: 'Tài khoản hệ sinh thái Google' },
+            { id: 'web-3', categoryId: 'cat-2', name: 'Slack Workplace', icon: '⚡', url: 'https://slack.com', note: 'Giao tiếp nhóm công ty' },
+            { id: 'web-4', categoryId: 'cat-3', name: 'Vietcombank Digibank', icon: '🏦', url: 'https://vietcombank.com.vn', note: 'Tài khoản giao dịch chính' },
+            { id: 'web-5', categoryId: 'cat-4', name: 'Amazon Web Services (AWS)', icon: '☁️', url: 'https://aws.amazon.com', note: 'Hạ tầng server hệ thống' }
+        ];
+
+        const now = new Date().toISOString();
+        accounts = [
+            { id: 'acc-1', webId: 'web-1', user: 'nguyenvana.official@gmail.com', pass: 'F@cebook_2026!Sec', subGroup: 'Tài khoản chính', note: 'Mật khẩu cấp 2: 1995', createdAt: now, updatedAt: now },
+            { id: 'acc-2', webId: 'web-1', user: 'page_admin_clone1', pass: 'Admin#Clone9981', subGroup: 'Clone / Phụ', note: 'Dùng để chạy quảng cáo Ads', createdAt: now, updatedAt: now },
+            { id: 'acc-3', webId: 'web-1', user: 'marketing_team_leader', pass: 'Mkt@Team2026$$', subGroup: 'Công việc', note: 'Cấp quyền cho nhân viên content', createdAt: now, updatedAt: now },
+            { id: 'acc-4', webId: 'web-1', user: 'seeding_bot_01@yahoo.com', pass: 'SeedBot!001122', subGroup: 'Clone / Phụ', note: 'Tài khoản tương tác group', createdAt: now, updatedAt: now },
+            { id: 'acc-5', webId: 'web-1', user: 'seeding_bot_02@yahoo.com', pass: 'SeedBot!002233', subGroup: 'Clone / Phụ', note: 'Tài khoản tương tác group', createdAt: now, updatedAt: now },
+            { id: 'acc-6', webId: 'web-1', user: 'seeding_bot_03@yahoo.com', pass: 'SeedBot!003344', subGroup: 'Clone / Phụ', note: 'Tài khoản dự phòng', createdAt: now, updatedAt: now },
+            { id: 'acc-7', webId: 'web-1', user: 'support_customer_01', pass: 'Supp!2026Care', subGroup: 'Chăm sóc KH', note: 'Trực page ca sáng', createdAt: now, updatedAt: now },
+            
+            { id: 'acc-8', webId: 'web-2', user: 'alex.nguyen@gmail.com', pass: 'GooGle#Pass_9988', subGroup: 'Tài khoản chính', note: 'Đã bật 2FA qua Google Authenticator', createdAt: now, updatedAt: now },
+            { id: 'acc-9', webId: 'web-2', user: 'backup.drive2026@gmail.com', pass: 'DriveStorage!2TB', subGroup: 'Lưu trữ', note: 'Dung lượng Google One 2TB', createdAt: now, updatedAt: now },
+            
+            { id: 'acc-10', webId: 'web-3', user: 'dev_lead_nguyen', pass: 'SlackWork!DevLead26', subGroup: 'Team Dev', note: 'Channel Kỹ thuật & Deploy', createdAt: now, updatedAt: now },
+            
+            { id: 'acc-11', webId: 'web-4', user: '0123456789 (SĐT)', pass: 'Vcb@99887766', subGroup: 'Tài khoản cá nhân', note: 'Mã PIN SmartOTP: 8899', createdAt: now, updatedAt: now },
+            
+            { id: 'acc-12', webId: 'web-5', user: 'root-admin@mycompany.io', pass: 'Aws!SuperAdmin#Root2026', subGroup: 'Root Account', note: 'Lưu ý cực kỳ bảo mật, cất key IAM trong Vault', createdAt: now, updatedAt: now },
+            { id: 'acc-13', webId: 'web-5', user: 'devops-deploy-user', pass: 'DevOps@IAM!Key2026', subGroup: 'IAM User', note: 'Chỉ có quyền S3 và EC2 Production', createdAt: now, updatedAt: now }
+        ];
+
+        saveData();
+        if (!silent) showToast('Đã khởi tạo thành công dữ liệu mẫu hoàn chỉnh!', 'success');
+    }
+
+    // Modal helpers
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // Select Category Navigation
+    function selectCategory(catId, element) {
+        currentCategory = catId;
+        document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
+        if (element) element.classList.add('active');
+
+        // Update banner
+        if (catId === 'all') {
+            document.getElementById('banner-icon').innerText = '📁';
+            document.getElementById('banner-title').innerText = 'Tất cả tài khoản';
+            document.getElementById('banner-desc').innerText = 'Hiển thị toàn bộ các trang web và tài khoản được phân cấp rõ ràng';
+        } else {
+            const cat = categories.find(c => c.id === catId);
+            if (cat) {
+                document.getElementById('banner-icon').innerText = cat.icon || '📁';
+                document.getElementById('banner-title').innerText = cat.name;
+                document.getElementById('banner-desc').innerText = cat.desc || 'Danh mục quản lý tài khoản chuyên biệt';
+            }
+        }
+        renderContent();
+    }
+
+    // Filter by search
+    function filterData() {
+        searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+        renderContent();
+    }
+
+    // Render Main Application
+    function renderApp() {
+        // Stats
+        document.getElementById('stat-categories').innerText = categories.length;
+        document.getElementById('stat-websites').innerText = websites.length;
+        document.getElementById('stat-accounts').innerText = accounts.length;
+        document.getElementById('badge-all').innerText = accounts.length;
+
+        // Render Sidebar Categories
+        const catContainer = document.getElementById('category-list');
+        catContainer.innerHTML = categories.map(cat => {
+            const count = accounts.filter(a => {
+                const web = websites.find(w => w.id === a.webId);
+                return web && web.categoryId === cat.id;
+            }).length;
+
+            return `
+                <a href="#" class="category-item ${currentCategory === cat.id ? 'active' : ''}" onclick="selectCategory('${cat.id}', this)">
+                    <div class="category-info">
+                        <span class="category-icon">${cat.icon || '📁'}</span>
+                        <span>${cat.name}</span>
+                    </div>
+                    <span class="badge">${count}</span>
+                </a>
+            `;
+        }).join('');
+
+        renderContent();
+    }
+
+    // Render Website Sections and Accounts
+    function renderContent() {
+        const renderArea = document.getElementById('main-content-render');
+
+        // Filter websites based on category
+        let filteredWebs = websites;
+        if (currentCategory !== 'all') {
+            filteredWebs = websites.filter(w => w.categoryId === currentCategory);
+        }
+
+        // Apply search query
+        let matchedWebs = [];
+        filteredWebs.forEach(web => {
+            const webAccounts = accounts.filter(a => a.webId === web.id);
+            // Search inside website name, url, note, or inside account user/note/subgroup
+            const matchesWeb = web.name.toLowerCase().includes(searchQuery) || 
+                               (web.url && web.url.toLowerCase().includes(searchQuery)) ||
+                               (web.note && web.note.toLowerCase().includes(searchQuery));
+            
+            const matchedAccs = webAccounts.filter(a => 
+                matchesWeb ||
+                a.user.toLowerCase().includes(searchQuery) ||
+                (a.note && a.note.toLowerCase().includes(searchQuery)) ||
+                (a.subGroup && a.subGroup.toLowerCase().includes(searchQuery))
+            );
+
+            if (matchesWeb || matchedAccs.length > 0) {
+                matchedWebs.push({
+                    web,
+                    accounts: matchesWeb && searchQuery === '' ? webAccounts : matchedAccs
+                });
+            }
+        });
+
+        // Update banner count
+        const totalDisplayedAccs = matchedWebs.reduce((sum, item) => sum + item.accounts.length, 0);
+        document.getElementById('banner-count').innerText = `${totalDisplayedAccs} tài khoản`;
+
+        if (matchedWebs.length === 0) {
+            renderArea.innerHTML = `
+                <div class="empty-state">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <h3>Không tìm thấy tài khoản hay trang web nào</h3>
+                    <p>Hãy thêm trang web mới hoặc thử từ khóa tìm kiếm khác</p>
+                    <button class="btn btn-primary" onclick="openWebsiteModal()">+ Thêm Trang Web</button>
+                </div>
+            `;
+            return;
+        }
+
+        renderArea.innerHTML = matchedWebs.map(({ web, accounts: webAccs }) => {
+            const cat = categories.find(c => c.id === web.categoryId);
+            
+            // Subgroups for this website
+            const subGroups = ['Tất cả', ...new Set(webAccs.map(a => a.subGroup || 'Khác'))];
+            
+            // Init state for pagination & subgroup if not existing
+            if (!webViewState[web.id]) {
+                webViewState[web.id] = { page: 1, subGroup: 'Tất cả' };
+            }
+            const state = webViewState[web.id];
+
+            // Filter by selected subGroup
+            let filteredAccs = webAccs;
+            if (state.subGroup !== 'Tất cả') {
+                filteredAccs = webAccs.filter(a => (a.subGroup || 'Khác') === state.subGroup);
+            }
+
+            // Pagination logic (Phân chia các mục nhỏ hơn khi tài khoản nhiều)
+            const totalPages = Math.ceil(filteredAccs.length / ITEMS_PER_PAGE) || 1;
+            if (state.page > totalPages) state.page = totalPages;
+            
+            const startIdx = (state.page - 1) * ITEMS_PER_PAGE;
+            const paginatedAccs = filteredAccs.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+            const needSubgroupBar = subGroups.length > 2 || webAccs.length > ITEMS_PER_PAGE;
+
+            return `
+                <div class="website-section">
+                    <div class="website-header">
+                        <div class="website-title-area">
+                            <div class="website-logo">${web.icon || '🌐'}</div>
+                            <div class="website-meta">
+                                <h3>
+                                    ${web.name}
+                                    <span class="badge" style="font-size: 0.75rem;">${webAccs.length} tài khoản</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">• [Đề mục: ${cat ? cat.name : 'Khác'}]</span>
+                                </h3>
+                                <div>
+                                    ${web.url ? `<a href="${web.url}" target="_blank" class="website-url">${web.url} ↗</a>` : ''}
+                                    ${web.note ? `<div class="website-note">${web.note}</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="website-actions">
+                            <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;" onclick="openAccountModalForWeb('${web.id}')">+ Thêm tài khoản</button>
+                            <button class="btn-icon-only" title="Sửa trang web" onclick="editWebsite('${web.id}')">✎</button>
+                            <button class="btn-icon-only" style="color: var(--danger);" title="Xóa trang web" onclick="deleteWebsite('${web.id}')">🗑</button>
+                        </div>
+                    </div>
+
+                    ${needSubgroupBar ? `
+                        <div class="subgroup-bar">
+                            <div class="subgroup-tabs">
+                                <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center; margin-right: 6px;">Phân loại con:</span>
+                                ${subGroups.map(sg => `
+                                    <span class="subgroup-tab ${state.subGroup === sg ? 'active' : ''}" onclick="setWebSubGroup('${web.id}', '${sg}')">${sg}</span>
+                                `).join('')}
+                            </div>
+                            ${filteredAccs.length > ITEMS_PER_PAGE ? `
+                                <span style="font-size: 0.75rem; color: var(--accent); font-weight: 600;">
+                                    ⚡ Đã bật tự động phân trang (Hiển thị ${startIdx + 1}-${Math.min(startIdx + ITEMS_PER_PAGE, filteredAccs.length)} / ${filteredAccs.length})
+                                </span>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+
+                    <div class="table-responsive">
+                        <table class="accounts-table">
+                            <thead>
+                                <tr>
+                                    <th>Tài Khoản / Username</th>
+                                    <th>Mật Khẩu</th>
+                                    <th>Ghi chú</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Ngày chỉnh sửa</th>
+                                    <th style="text-align: right;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${paginatedAccs.map(acc => `
+                                    <tr>
+                                        <td>
+                                            <div class="account-user">
+                                                <span>${acc.user}</span>
+                                                ${acc.subGroup ? `<span class="subgroup-badge">${acc.subGroup}</span>` : ''}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="password-cell">
+                                                <span class="password-masked" id="pass-text-${acc.id}">••••••••••••</span>
+                                                <button class="btn-icon-only" style="padding: 4px;" onclick="togglePassDisplay('${acc.id}', '${acc.pass}')" title="Hiển thị / Ẩn">👁️</button>
+                                                <button class="btn-icon-only" style="padding: 4px;" onclick="copyToClipboard('${acc.pass}')" title="Sao chép mật khẩu">📋</button>
+                                            </div>
+                                        </td>
+                                        <td><div class="note-cell">${acc.note || '---'}</div></td>
+                                        <td><div class="date-cell">${formatDate(acc.createdAt)}</div></td>
+                                        <td><div class="date-cell">${formatDate(acc.updatedAt)}</div></td>
+                                        <td style="text-align: right;">
+                                            <div class="row-actions" style="justify-content: flex-end;">
+                                                <button class="btn-icon-only" title="Sao chép Username" onclick="copyToClipboard('${acc.user}', 'Tên đăng nhập')">👤</button>
+                                                <button class="btn-icon-only" title="Sửa tài khoản" onclick="editAccount('${acc.id}')">✎</button>
+                                                <button class="btn-icon-only" style="color: var(--danger);" title="Xóa tài khoản" onclick="deleteAccount('${acc.id}')">🗑</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    ${totalPages > 1 ? `
+                        <div class="pagination-bar">
+                            <span>Trang ${state.page} / ${totalPages} (Tổng ${filteredAccs.length} tài khoản trong nhóm)</span>
+                            <div class="pagination-btns">
+                                <button class="page-btn" ${state.page === 1 ? 'disabled' : ''} onclick="changeWebPage('${web.id}', ${state.page - 1})">Trước</button>
+                                ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p => `
+                                    <button class="page-btn ${state.page === p ? 'active' : ''}" onclick="changeWebPage('${web.id}', ${p})">${p}</button>
+                                `).join('')}
+                                <button class="page-btn" ${state.page === totalPages ? 'disabled' : ''} onclick="changeWebPage('${web.id}', ${state.page + 1})">Sau</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Subgroup & Pagination Controllers
+    function setWebSubGroup(webId, sg) {
+        if (!webViewState[webId]) webViewState[webId] = { page: 1, subGroup: 'Tất cả' };
+        webViewState[webId].subGroup = sg;
+        webViewState[webId].page = 1;
+        renderContent();
+    }
+
+    function changeWebPage(webId, page) {
+        if (!webViewState[webId]) webViewState[webId] = { page: 1, subGroup: 'Tất cả' };
+        webViewState[webId].page = page;
+        renderContent();
+    }
+
+    // Password interactions
+    function togglePassDisplay(id, realPass) {
+        const el = document.getElementById(`pass-text-${id}`);
+        if (el.innerText === '••••••••••••') {
+            el.innerText = realPass;
+            el.style.letterSpacing = 'normal';
+        } else {
+            el.innerText = '••••••••••••';
+            el.style.letterSpacing = '2px';
+        }
+    }
+
+    function copyToClipboard(text, label = 'Mật khẩu') {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(`Đã sao chép ${label} vào bộ nhớ tạm!`, 'success');
+        }).catch(() => {
+            const temp = document.createElement('input');
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            showToast(`Đã sao chép ${label} vào bộ nhớ tạm!`, 'success');
+        });
+    }
+
+    function toggleInputPass(inputId) {
+        const input = document.getElementById(inputId);
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // Password Generator
+    function openGenModal() {
+        generatePass();
+        openModal('gen-modal');
+    }
+
+    function generatePass() {
+        const length = parseInt(document.getElementById('gen-length').value);
+        const upper = document.getElementById('gen-upper').checked;
+        const lower = document.getElementById('gen-lower').checked;
+        const num = document.getElementById('gen-num').checked;
+        const sym = document.getElementById('gen-sym').checked;
+
+        let chars = '';
+        if (upper) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        if (lower) chars += 'abcdefghijklmnopqrstuvwxyz';
+        if (num) chars += '0123456789';
+        if (sym) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+        if (chars === '') {
+            document.getElementById('gen-result').value = 'Hãy chọn ít nhất 1 tùy chọn';
+            return;
+        }
+
+        let pass = '';
+        for (let i = 0; i < length; i++) {
+            pass += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        document.getElementById('gen-result').value = pass;
+    }
+
+    function copyGenPass() {
+        const pass = document.getElementById('gen-result').value;
+        copyToClipboard(pass);
+        closeModal('gen-modal');
+    }
+
+    function generateAutoPassForInput() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        let pass = '';
+        for (let i = 0; i < 16; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+        document.getElementById('acc-pass').value = pass;
+        document.getElementById('acc-pass').type = 'text';
+        showToast('Đã tự động tạo mật khẩu an toàn 16 ký tự!');
+    }
+
+    // Add/Edit Category
+    function openCategoryModal() {
+        document.getElementById('cat-name').value = '';
+        document.getElementById('cat-icon').value = '📁';
+        document.getElementById('cat-desc').value = '';
+        openModal('category-modal');
+    }
+
+    function saveCategory() {
+        const name = document.getElementById('cat-name').value.trim();
+        const icon = document.getElementById('cat-icon').value.trim() || '📁';
+        const desc = document.getElementById('cat-desc').value.trim();
+
+        if (!name) return alert('Vui lòng nhập tên đề mục lớn!');
+
+        categories.push({
+            id: 'cat-' + Date.now(),
+            name, icon, desc
+        });
+
+        saveData();
+        closeModal('category-modal');
+        showToast('Đã thêm Đề mục lớn mới!', 'success');
+    }
+
+    // Add/Edit Website
+    function openWebsiteModal(categoryId = '') {
+        document.getElementById('web-id').value = '';
+        document.getElementById('website-modal-title').innerText = 'Thêm Trang Web / Dịch Vụ';
+        document.getElementById('web-name').value = '';
+        document.getElementById('web-icon').value = '🌐';
+        document.getElementById('web-url').value = '';
+        document.getElementById('web-note').value = '';
+
+        const select = document.getElementById('web-category');
+        select.innerHTML = categories.map(c => `<option value="${c.id}" ${c.id === (categoryId || currentCategory) ? 'selected' : ''}>${c.icon} ${c.name}</option>`).join('');
+
+        openModal('website-modal');
+    }
+
+    function editWebsite(webId) {
+        const web = websites.find(w => w.id === webId);
+        if (!web) return;
+
+        document.getElementById('web-id').value = web.id;
+        document.getElementById('website-modal-title').innerText = 'Chỉnh Sửa Trang Web / Dịch Vụ';
+        document.getElementById('web-name').value = web.name;
+        document.getElementById('web-icon').value = web.icon;
+        document.getElementById('web-url').value = web.url || '';
+        document.getElementById('web-note').value = web.note || '';
+
+        const select = document.getElementById('web-category');
+        select.innerHTML = categories.map(c => `<option value="${c.id}" ${c.id === web.categoryId ? 'selected' : ''}>${c.icon} ${c.name}</option>`).join('');
+
+        openModal('website-modal');
+    }
+
+    function saveWebsite() {
+        const id = document.getElementById('web-id').value;
+        const categoryId = document.getElementById('web-category').value;
+        const name = document.getElementById('web-name').value.trim();
+        const icon = document.getElementById('web-icon').value.trim() || '🌐';
+        const url = document.getElementById('web-url').value.trim();
+        const note = document.getElementById('web-note').value.trim();
+
+        if (!name) return alert('Vui lòng nhập tên trang web!');
+
+        if (id) {
+            const index = websites.findIndex(w => w.id === id);
+            if (index !== -1) {
+                websites[index] = { ...websites[index], categoryId, name, icon, url, note };
+            }
+        } else {
+            websites.push({
+                id: 'web-' + Date.now(),
+                categoryId, name, icon, url, note
+            });
+        }
+
+        saveData();
+        closeModal('website-modal');
+        showToast('Đã lưu thông tin trang web!', 'success');
+    }
+
+    function deleteWebsite(webId) {
+        if (!confirm('Bạn có chắc chắn muốn xóa trang web này cùng toàn bộ các tài khoản bên trong không?')) return;
+        websites = websites.filter(w => w.id !== webId);
+        accounts = accounts.filter(a => a.webId !== webId);
+        saveData();
+        showToast('Đã xóa trang web thành công!', 'info');
+    }
+
+    // Add/Edit Account
+    function openAccountModalForWeb(webId) {
+        openAccountModal();
+        document.getElementById('acc-website').value = webId;
+    }
+
+    function openAccountModal() {
+        if (websites.length === 0) {
+            alert('Vui lòng tạo ít nhất 1 Trang web / Dịch vụ trước khi thêm tài khoản!');
+            openWebsiteModal();
+            return;
+        }
+
+        document.getElementById('acc-id').value = '';
+        document.getElementById('account-modal-title').innerText = 'Thêm Tài Khoản Mới';
+        document.getElementById('acc-user').value = '';
+        document.getElementById('acc-pass').value = '';
+        document.getElementById('acc-subgroup').value = 'Tài khoản chính';
+        document.getElementById('acc-note').value = '';
+
+        const select = document.getElementById('acc-website');
+        select.innerHTML = websites.map(w => {
+            const cat = categories.find(c => c.id === w.categoryId);
+            return `<option value="${w.id}">${w.icon} ${w.name} (${cat ? cat.name : ''})</option>`;
+        }).join('');
+
+        openModal('account-modal');
+    }
+
+    function editAccount(accId) {
+        const acc = accounts.find(a => a.id === accId);
+        if (!acc) return;
+
+        document.getElementById('acc-id').value = acc.id;
+        document.getElementById('account-modal-title').innerText = 'Chỉnh Sửa Tài Khoản';
+        document.getElementById('acc-user').value = acc.user;
+        document.getElementById('acc-pass').value = acc.pass;
+        document.getElementById('acc-subgroup').value = acc.subGroup || '';
+        document.getElementById('acc-note').value = acc.note || '';
+
+        const select = document.getElementById('acc-website');
+        select.innerHTML = websites.map(w => {
+            const cat = categories.find(c => c.id === w.categoryId);
+            return `<option value="${w.id}" ${w.id === acc.webId ? 'selected' : ''}>${w.icon} ${w.name} (${cat ? cat.name : ''})</option>`;
+        }).join('');
+
+        openModal('account-modal');
+    }
+
+    function saveAccount() {
+        const id = document.getElementById('acc-id').value;
+        const webId = document.getElementById('acc-website').value;
+        const user = document.getElementById('acc-user').value.trim();
+        const pass = document.getElementById('acc-pass').value;
+        const subGroup = document.getElementById('acc-subgroup').value.trim() || 'Chung';
+        const note = document.getElementById('acc-note').value.trim();
+
+        if (!user || !pass) return alert('Vui lòng nhập đầy đủ Tên đăng nhập và Mật khẩu!');
+
+        const now = new Date().toISOString();
+
+        if (id) {
+            const index = accounts.findIndex(a => a.id === id);
+            if (index !== -1) {
+                accounts[index] = {
+                    ...accounts[index],
+                    webId, user, pass, subGroup, note,
+                    updatedAt: now
+                };
+            }
+        } else {
+            accounts.push({
+                id: 'acc-' + Date.now(),
+                webId, user, pass, subGroup, note,
+                createdAt: now,
+                updatedAt: now
+            });
+        }
+
+        saveData();
+        closeModal('account-modal');
+        showToast('Đã lưu tài khoản thành công!', 'success');
+
+        // Ghi dong bo ra file notepad .txt (kiem tra trung lap theo id)
+        const savedAcc = id
+            ? accounts.find(a => a.id === id)
+            : accounts[accounts.length - 1];
+        if (savedAcc) syncNotepadFromAccount(savedAcc);
+    }
+
+    function deleteAccount(accId) {
+        if (!confirm('Bạn có chắc chắn muốn xóa tài khoản này không?')) return;
+        accounts = accounts.filter(a => a.id !== accId);
+        saveData();
+        showToast('Đã xóa tài khoản!', 'info');
+    }
+
+    // Export & Import Data
+    function exportData() {
+        const data = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            categories,
+            websites,
+            accounts
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `vaultmanager_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Đã sao lưu toàn bộ dữ liệu thành công!', 'success');
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.categories && data.websites && data.accounts) {
+                    categories = data.categories;
+                    websites = data.websites;
+                    accounts = data.accounts;
+                    saveData();
+                    showToast('Phục hồi dữ liệu từ file sao lưu thành công!', 'success');
+                } else {
+                    alert('File sao lưu không hợp lệ!');
+                }
+            } catch (err) {
+                alert('Lỗi khi đọc file sao lưu: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Run init
+    window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
